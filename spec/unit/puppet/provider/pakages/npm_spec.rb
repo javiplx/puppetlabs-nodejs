@@ -30,9 +30,19 @@ describe Puppet::Type.type(:package).provider(:npm) do
     end
 
     describe "and install options are specified" do
+      before :each do
+        @resource2 =  Puppet::Type.type(:package).new(
+          :install_options => [ {'registry'=>'http://custom.registry/npm'} ],
+          :name   => 'express',
+          :ensure => :present
+        )
+        @provider2 = described_class.new(@resource2)
+        @provider2.class.stubs(:optional_commands).with(:npm).returns "/usr/local/bin/npm"
+        @provider2.class.stubs(:command).with(:npm).returns "/usr/local/bin/npm"
+      end
       it "should use the given registry" do
-        @provider.expects(:npm).with('install', '--global', '--registry', 'http://custom.registry/npm', 'express')
-        @provider.install
+        @provider2.expects(:npm).with('install', '--global', '--registry', 'http://custom.registry/npm', 'express')
+        @provider2.install
       end
     end
     describe "and a source is specified" do
