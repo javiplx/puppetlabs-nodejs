@@ -4,6 +4,7 @@ require 'spec_helper'
 describe Puppet::Type.type(:package).provider(:npm) do
   before :each do
     @resource =  Puppet::Type.type(:package).new(
+      :install_options => [ {'registry'=>'http://custom.registry/npm'} ],
       :name   => 'express',
       :ensure => :present
     )
@@ -28,22 +29,16 @@ describe Puppet::Type.type(:package).provider(:npm) do
       @provider.install
     end
 
+    describe "and install options are specified" do
+      it "should use the given registry" do
+        @provider.expects(:npm).with('install', '--global', '--registry', 'http://custom.registry/npm', 'express')
+        @provider.install
+      end
+    end
     describe "and a source is specified" do
       it "should use the source instead of the gem name" do
         @resource[:source] = "/tmp/express.tar.gz"
         @provider.expects(:npm).with('install', '--global', '/tmp/express.tar.gz')
-        @provider.install
-      end
-    end
-  end
-
-  describe "when installing npm packages" do
-    before :each do
-      @resource[:install_options] = [ {'registry'=>'http://custom.registry/npm'} ]
-    end
-    describe "and install options are specified" do
-      it "should use the given registry" do
-        @provider.expects(:npm).with('install', '--global', '--registry', 'http://custom.registry/npm', 'express')
         @provider.install
       end
     end
